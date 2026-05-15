@@ -1,0 +1,74 @@
+Mobile App Proposal: WagChangeAll 
+Prepared by: Jean Ivann P. Comia  
+Target Region: Philippine Domestic Motorcycle Market 
+  
+1. Executive Summary  
+WagChangeAll is a motorcycle maintenance tracker app specifically tailored for the Philippine Domestic 
+Motorcycle Market in which conditions are far more varied and extreme as compared to their 
+international counterparts due to unpredictable weather and extreme variations in environmental 
+conditions. Through Pre-emptive maintenance measures made possible by this application, 
+WagChangeAll seeks to minimize mechanical, electrical, and operational failures that occur to 
+motorcycle riders in the Philippines that will translate to lower emissions figures, lower maintenance 
+costs, better fuel economy, and safer roads due to the lessening of accidents. 
+2. Problem Statement  
+● For Motorcycle riders: Unexpected part failures can lead to accidents, unexpected financial 
+expenditures, and legal issues to relevant road laws. 
+● For Motorcycle Owners: Financial loss due to increased depreciation directly caused due to 
+improper maintenance measures.  
+● For Motorcycle Mechanics and Parts vendors: Difficulties diagnosing customer vehicles due to 
+lax recordkeeping and lack of vehicle specific quirks, therefore resulting in the additional 
+expenditures in human resources and lost revenue due to purchase returns stemming from 
+part/diagnosis mismatch. 
+3. Proposed Solution  
+The solution is a single, local application that handles tracking, logging, and recording of events done to 
+the user’s motorcycle. The app will provide either automated tracking of motorcycle travel distance 
+through GPS, or through user input of existing odometer data. It will also provide maintenance interval 
+estimations based on official published manuals in conjunction with recorded part life cycles and 
+community feedback. 
+4. Target Audience  
+● Primary: Motorcycle Riders.  
+● Secondary: Motorcycle owners that do not ride their vehicles (fleet management etc.).  
+● Tertiary: Mechanics and Parts vendors to have.  
+5. Key Features & Functionality  
+• Maintenance Log — services, parts, costs, photos. 
+Records parts installed, services done, costs needed for purchases and installation, and 
+pictures of the parts involved. 
+ 
+• Odometer Tracking — GPS or manual entry. 
+A necessary feature to accurately gauge maintenance and part lifetimes via distance 
+tracking, it can be done through manual or automated entry. 
+ 
+• Service Reminders — time/distance alerts. 
+A user can opt into in-app alerts or notifications for their service intervals before even 
+reaching critical periods of their vehicle parts. 
+ 
+• Fuel Tracker — km/L and cost trends. 
+A fuel milage tracker will also be available as sudden drops in fuel economy can indicate 
+a failing part in the motorcycle. 
+ 
+• Predictive Rules — manual-based + community adjustments. 
+Through officially published manufacturer documentation and actual community 
+feedback, preventative maintenance is more accurate and timelier as compared to 
+generalized advice. 
+ 
+• Mechanic Summary — shareable service PDF. 
+This will show customer vehicle history, add service notes, and push recommended parts 
+lists. 
+ 
+6. Tech Stack  
+• Mobile: Kotlin Android app with local Room DB. 
+ 
+ 
+ 
+ 
+ 
+7. Success Metrics (KPIs)  
+• Predictive Maintenance Accuracy: Proportion of model recommendations that correctly 
+anticipate a fault or needed service. 
+• Average Cost Saved per User: Estimated yearly maintenance cost reduction per user compared 
+to baseline behavior. 
+• Fuel Economy Improvement: Average percentage increase in km/L after users follow app 
+recommendations. 
+• Crash/Breakdown Reduction (self‑reported): Percent decrease in user‑reported breakdowns or 
+roadside incidents over time. 
+ 

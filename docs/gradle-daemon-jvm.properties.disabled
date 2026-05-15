@@ -1,0 +1,4 @@
+# Disabled: moving this file out of Gradle's `gradle/` directory prevents
+# automatic JDK toolchain provisioning. The project now relies on the local
+# JDK configured in `gradle.properties` via `org.gradle.java.home`.
+

@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">WagChangeAll</string>
+    <string name="app_subtitle">Maintenance and tracking</string>
+    <string name="open_app_settings">Open app settings</string>
+    <string name="settings_title">App settings</string>
+    <string name="theme_mode">Theme mode</string>
+    <string name="layout_density">Layout density</string>
+    <string name="compact">Compact</string>
+    <string name="comfort">Comfort</string>
+    <string name="show_active_bike_badge">Show active motorcycle badge</string>
+    <string name="reduce_motion">Reduce motion</string>
+    <string name="data_section">Data</string>
+    <string name="export_backup">Export backup</string>
+    <string name="import_backup">Import backup</string>
+    <string name="maintenance_csv">Maintenance CSV</string>
+    <string name="fuel_csv">Fuel CSV</string>
+    <string name="done">Done</string>
+    <string name="exporting">Working…</string>
+    <string name="backup_export_success">Backup exported successfully.</string>
+    <string name="backup_import_success">Backup restored successfully.</string>
+    <string name="maintenance_csv_export_success">Maintenance CSV exported successfully.</string>
+    <string name="fuel_csv_export_success">Fuel CSV exported successfully.</string>
+    <string name="backup_export_failed">Backup export failed: %1$s</string>
+    <string name="backup_import_failed">Backup restore failed: %1$s</string>
+    <string name="maintenance_csv_export_failed">Maintenance CSV export failed: %1$s</string>
+    <string name="fuel_csv_export_failed">Fuel CSV export failed: %1$s</string>
+    <string name="reminder_action_snooze">Snooze</string>
+    <string name="reminder_action_done">Done</string>
+    <string name="reminder_action_open">Open</string>
+</resources>
