@@ -1,4 +1,4 @@
-@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@file:OptIn(ExperimentalLayoutApi::class)
 
 package com.thisismine.myapplication.feature.maintenance
 
@@ -10,12 +10,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
@@ -334,70 +337,83 @@ private fun ServiceFormCard(
     val density = LocalCardDensity.current
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
-            modifier = Modifier.padding(density.cardPadding),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 560.dp)
+                .padding(density.cardPadding),
             verticalArrangement = Arrangement.spacedBy(density.rowSpacing)
         ) {
-            Text(
-                text = if (draft.editingId == null) "Add Service" else "Edit Service",
-                style = MaterialTheme.typography.titleMedium
-            )
-            OutlinedTextField(
-                value = draft.serviceType,
-                onValueChange = { onDraftChange(draft.copy(serviceType = it)) },
-                label = { Text("Service type") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            if (templates.isNotEmpty()) {
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    templates.forEach { template ->
-                        FilterChip(
-                            selected = draft.serviceType == template,
-                            onClick = { onDraftChange(draft.copy(serviceType = template)) },
-                            label = { Text(template) }
-                        )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f, fill = false)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(density.rowSpacing)
+            ) {
+                Text(
+                    text = if (draft.editingId == null) "Add Service" else "Edit Service",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                OutlinedTextField(
+                    value = draft.serviceType,
+                    onValueChange = { onDraftChange(draft.copy(serviceType = it)) },
+                    label = { Text("Service type") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                if (templates.isNotEmpty()) {
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        templates.forEach { template ->
+                            FilterChip(
+                                selected = draft.serviceType == template,
+                                onClick = { onDraftChange(draft.copy(serviceType = template)) },
+                                label = { Text(template) }
+                            )
+                        }
                     }
                 }
-            }
-            DatePickerField(
-                value = draft.dateIso,
-                onValueChange = { onDraftChange(draft.copy(dateIso = it)) },
-                label = "Date",
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = draft.odometer,
-                onValueChange = { onDraftChange(draft.copy(odometer = it)) },
-                label = { Text("Odometer km") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = draft.cost,
-                onValueChange = { onDraftChange(draft.copy(cost = it)) },
-                label = { Text("Cost PHP") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
-            CostLevelPicker(
-                selected = draft.costLevelSelection,
-                onSelectedChange = { onDraftChange(draft.copy(costLevelSelection = it)) }
-            )
-            OutlinedTextField(
-                value = draft.notes,
-                onValueChange = { onDraftChange(draft.copy(notes = it)) },
-                label = { Text("Notes") },
-                modifier = Modifier.fillMaxWidth()
-            )
+                DatePickerField(
+                    value = draft.dateIso,
+                    onValueChange = { onDraftChange(draft.copy(dateIso = it)) },
+                    label = "Date",
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = draft.odometer,
+                    onValueChange = { onDraftChange(draft.copy(odometer = it)) },
+                    label = { Text("Odometer km") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = draft.cost,
+                    onValueChange = { onDraftChange(draft.copy(cost = it)) },
+                    label = { Text("Cost PHP") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                CostLevelPicker(
+                    selected = draft.costLevelSelection,
+                    onSelectedChange = { onDraftChange(draft.copy(costLevelSelection = it)) }
+                )
+                OutlinedTextField(
+                    value = draft.notes,
+                    onValueChange = { onDraftChange(draft.copy(notes = it)) },
+                    label = { Text("Notes") },
+                    minLines = 3,
+                    maxLines = 4,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-            if (error != null) {
-                Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-            }
-            if (message != null) {
-                Text(message, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall)
+                if (error != null) {
+                    Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                }
+                if (message != null) {
+                    Text(message, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall)
+                }
             }
 
             Row(
@@ -427,69 +443,82 @@ private fun PartFormCard(
     val density = LocalCardDensity.current
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
-            modifier = Modifier.padding(density.cardPadding),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 560.dp)
+                .padding(density.cardPadding),
             verticalArrangement = Arrangement.spacedBy(density.rowSpacing)
         ) {
-            Text(
-                text = if (draft.editingId == null) "Add Part" else "Edit Part",
-                style = MaterialTheme.typography.titleMedium
-            )
-            OutlinedTextField(
-                value = draft.partName,
-                onValueChange = { onDraftChange(draft.copy(partName = it)) },
-                label = { Text("Part name") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            DatePickerField(
-                value = draft.dateIso,
-                onValueChange = { onDraftChange(draft.copy(dateIso = it)) },
-                label = "Date",
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = draft.odometer,
-                onValueChange = { onDraftChange(draft.copy(odometer = it)) },
-                label = { Text("Odometer km") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = draft.cost,
-                onValueChange = { onDraftChange(draft.copy(cost = it)) },
-                label = { Text("Cost PHP") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
-            CostLevelPicker(
-                selected = draft.costLevelSelection,
-                onSelectedChange = { onDraftChange(draft.copy(costLevelSelection = it)) }
-            )
-            OutlinedTextField(
-                value = draft.notes,
-                onValueChange = { onDraftChange(draft.copy(notes = it)) },
-                label = { Text("Notes") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = draft.replacementIntervalKm,
-                onValueChange = { onDraftChange(draft.copy(replacementIntervalKm = it)) },
-                label = { Text("Replace interval km (optional)") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
-            DatePickerField(
-                value = draft.warrantyExpiryIso,
-                onValueChange = { onDraftChange(draft.copy(warrantyExpiryIso = it)) },
-                label = "Warranty expiry (optional)",
-                modifier = Modifier.fillMaxWidth(),
-                allowClear = true
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f, fill = false)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(density.rowSpacing)
+            ) {
+                Text(
+                    text = if (draft.editingId == null) "Add Part" else "Edit Part",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                OutlinedTextField(
+                    value = draft.partName,
+                    onValueChange = { onDraftChange(draft.copy(partName = it)) },
+                    label = { Text("Part name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                DatePickerField(
+                    value = draft.dateIso,
+                    onValueChange = { onDraftChange(draft.copy(dateIso = it)) },
+                    label = "Date",
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = draft.odometer,
+                    onValueChange = { onDraftChange(draft.copy(odometer = it)) },
+                    label = { Text("Odometer km") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = draft.cost,
+                    onValueChange = { onDraftChange(draft.copy(cost = it)) },
+                    label = { Text("Cost PHP") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                CostLevelPicker(
+                    selected = draft.costLevelSelection,
+                    onSelectedChange = { onDraftChange(draft.copy(costLevelSelection = it)) }
+                )
+                OutlinedTextField(
+                    value = draft.notes,
+                    onValueChange = { onDraftChange(draft.copy(notes = it)) },
+                    label = { Text("Notes") },
+                    minLines = 3,
+                    maxLines = 4,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = draft.replacementIntervalKm,
+                    onValueChange = { onDraftChange(draft.copy(replacementIntervalKm = it)) },
+                    label = { Text("Replace interval km (optional)") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                DatePickerField(
+                    value = draft.warrantyExpiryIso,
+                    onValueChange = { onDraftChange(draft.copy(warrantyExpiryIso = it)) },
+                    label = "Warranty expiry (optional)",
+                    modifier = Modifier.fillMaxWidth(),
+                    allowClear = true
+                )
 
-            if (error != null) {
-                Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-            }
-            if (message != null) {
-                Text(message, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall)
+                if (error != null) {
+                    Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                }
+                if (message != null) {
+                    Text(message, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall)
+                }
             }
 
             Row(

@@ -246,10 +246,15 @@ Please provide:
 4. Recommended checks before the next service
 5. Confidence level (High/Medium/Low) in your assessment
 
-Format your response as key-value pairs (key: value), one per line.
-Keep language technical but accessible.
-Focus on actionable insights, not speculation.
-""".trimIndent()
+Format your response EXACTLY as key-value pairs (critical for parsing):
+SUMMARY: [one-paragraph summary text]
+RECENT WORK: [notable work description]
+CONCERNS: [current concerns or issues]
+CHECKS: [recommended checks]
+CONFIDENCE: [High/Medium/Low]
+
+Use exactly these key names. Keep language technical but accessible.
+Focus on actionable insights, not speculation.""".trimIndent()
     }
 
     private fun buildPredictiveRulesPrompt(
@@ -309,14 +314,15 @@ Consider:
 - Accelerated wear patterns if visible
 - User's actual replacement spacing
 
-Format each suggestion as:
+Format each suggestion EXACTLY as follows (critical for parsing):
 COMPONENT: [name]
 INTERVAL: [e.g., "6000 km or 6 months"]
 RATIONALE: [brief explanation]
 RISK: [consequence of skipping]
 CONFIDENCE: [High/Medium/Low]
 ---
-""".trimIndent()
+
+Separate each suggestion with a line containing only "---". Only include non-empty values.""".trimIndent()
     }
 
     private fun parseMechanicSummaryResponse(text: String): MechanicSummaryResponse {
@@ -342,13 +348,39 @@ CONFIDENCE: [High/Medium/Low]
                 val (key, value) = it.split(":", limit = 2)
                 key.trim().lowercase() to value.trim()
             }
-            if (map.containsKey("component")) {
+
+            // Be flexible with key names - try multiple variations
+            val component = map["component"]
+                ?: map["component name"]
+                ?: map["part"]
+                ?: map["part name"]
+                ?: return@mapNotNull null
+
+            val interval = map["interval"]
+                ?: map["suggested interval"]
+                ?: map["maintenance interval"]
+                ?: "Unknown"
+
+            val rationale = map["rationale"]
+                ?: map["reasoning"]
+                ?: map["explanation"]
+                ?: "No rationale provided."
+
+            val riskIfSkipped = map["risk"]
+                ?: map["risk if skipped"]
+                ?: map["consequence"]
+                ?: "Potential maintenance issues."
+
+            val confidence = map["confidence"]
+                ?: "Medium"
+
+            if (component.isNotBlank()) {
                 PredictiveRulesSuggestion(
-                    component = map["component"] ?: "Unknown",
-                    suggestedInterval = map["interval"] ?: "Unknown",
-                    rationale = map["rationale"] ?: "No rationale provided.",
-                    riskIfSkipped = map["risk"] ?: "Potential maintenance issues.",
-                    confidence = map["confidence"] ?: "Medium"
+                    component = component,
+                    suggestedInterval = interval,
+                    rationale = rationale,
+                    riskIfSkipped = riskIfSkipped,
+                    confidence = confidence
                 )
             } else null
         }
