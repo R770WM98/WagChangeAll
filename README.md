@@ -56,6 +56,4 @@ sdk.dir=C:\\Users\\YourName\\AppData\\Local\\Android\\Sdk
 
 - `MainActivity.kt` launches `WagChangeAllApp()` in `App.kt`.
 
-## Roadmap
 
-- Next phases are tracked in `docs/feature_completion_plan.md`.
