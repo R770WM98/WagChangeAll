@@ -33,6 +33,4 @@ This project now includes a proposal-based app implementation for the `WagChange
 
 - `MainActivity.kt` launches `WagChangeAllApp()` in `App.kt`.
 
-## Roadmap
 
-- Next phases are tracked in `docs/feature_completion_plan.md`.
