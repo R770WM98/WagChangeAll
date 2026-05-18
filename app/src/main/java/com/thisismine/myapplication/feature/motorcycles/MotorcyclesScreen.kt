@@ -4,6 +4,8 @@ import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -387,6 +389,7 @@ private fun MotorcycleRowCard(
             CardHeaderRow(
                 icon = Icons.AutoMirrored.Filled.DirectionsBike,
                 title = bike.name,
+                titleMaxLines = 2,
                 trailing = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         StatusChip(
@@ -399,38 +402,47 @@ private fun MotorcycleRowCard(
                             contentDescription = if (detailsExpanded) "Hide bike details" else "Show bike details",
                             onClick = { detailsExpanded = !detailsExpanded }
                         )
-                        CompactIconAction(
-                            icon = Icons.Filled.CheckCircle,
-                            contentDescription = "Set active motorcycle",
-                            onClick = onSelect,
-                            enabled = !isActive
-                        )
-                        CompactIconAction(
-                            icon = Icons.Filled.Edit,
-                            contentDescription = "Edit motorcycle",
-                            onClick = onEdit
-                        )
-                        CompactIconAction(
-                            icon = Icons.Filled.AddAPhoto,
-                            contentDescription = "Add motorcycle photo",
-                            onClick = onPickImage
-                        )
-                        if (bike.imageUris.isNotEmpty()) {
-                            CompactIconAction(
-                                icon = Icons.Filled.HideImage,
-                                contentDescription = "Remove first motorcycle photo",
-                                onClick = onRemoveFirstPicture
-                            )
-                        }
-                        CompactIconAction(
-                            icon = Icons.Filled.Delete,
-                            contentDescription = "Delete motorcycle",
-                            onClick = onDelete,
-                            enabled = !isActive
-                        )
                     }
                 }
             )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                CompactIconAction(
+                    icon = Icons.Filled.CheckCircle,
+                    contentDescription = "Set active motorcycle",
+                    onClick = onSelect,
+                    enabled = !isActive
+                )
+                CompactIconAction(
+                    icon = Icons.Filled.Edit,
+                    contentDescription = "Edit motorcycle",
+                    onClick = onEdit
+                )
+                CompactIconAction(
+                    icon = Icons.Filled.AddAPhoto,
+                    contentDescription = "Add motorcycle photo",
+                    onClick = onPickImage
+                )
+                if (bike.imageUris.isNotEmpty()) {
+                    CompactIconAction(
+                        icon = Icons.Filled.HideImage,
+                        contentDescription = "Remove first motorcycle photo",
+                        onClick = onRemoveFirstPicture
+                    )
+                }
+                CompactIconAction(
+                    icon = Icons.Filled.Delete,
+                    contentDescription = "Delete motorcycle",
+                    onClick = onDelete,
+                    enabled = !isActive
+                )
+            }
 
             LabeledBikeLine(icon = Icons.Filled.Badge, text = "Plate: ${bike.plateNumber}")
             LabeledBikeLine(icon = Icons.Filled.Speed, text = "Odometer: ${bike.currentOdometerKm} km")

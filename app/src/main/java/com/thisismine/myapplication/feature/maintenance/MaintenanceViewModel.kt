@@ -184,7 +184,7 @@ class MaintenanceViewModel(
         refresh(message = "Part record deleted.")
     }
 
-    private fun refresh(message: String? = _uiState.value.message) {
+    fun refresh(message: String? = _uiState.value.message) {
         val currentOdometerKm = repository.getCurrentOdometerKm()
         val allServices = repository.getServiceRecords()
         val allParts = repository.getPartRecords()

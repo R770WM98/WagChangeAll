@@ -19,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.thisismine.myapplication.ui.theme.MyApplicationTheme
@@ -29,19 +30,29 @@ import androidx.compose.material.icons.filled.Info
 fun CardHeaderRow(
     icon: ImageVector,
     title: String,
+    titleMaxLines: Int = 1,
     modifier: Modifier = Modifier,
     trailing: @Composable (() -> Unit)? = null
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-            Text(title, style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = titleMaxLines.coerceAtLeast(1),
+                overflow = TextOverflow.Ellipsis
+            )
         }
-        if (trailing != null) trailing()
+        trailing?.invoke()
     }
 }
 

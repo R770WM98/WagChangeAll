@@ -2,7 +2,11 @@
 
 package com.thisismine.myapplication.feature.maintenance
 
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -12,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.lazy.LazyColumn
@@ -30,6 +35,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,10 +49,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.thisismine.myapplication.feature.maintenance.model.PartRecord
 import com.thisismine.myapplication.feature.maintenance.model.ServiceRecord
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.HideImage
 import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
 import com.thisismine.myapplication.core.ui.CardHeaderRow
 import com.thisismine.myapplication.core.ui.CompactIconAction
 import com.thisismine.myapplication.core.ui.CostRow
@@ -57,6 +70,12 @@ import com.thisismine.myapplication.core.ui.DatePickerField
 import java.time.LocalDate
 import androidx.compose.ui.tooling.preview.Preview
 import com.thisismine.myapplication.ui.theme.MyApplicationTheme
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.window.Dialog
+import coil.compose.AsyncImage
+import com.thisismine.myapplication.data.repository.WagChangeRepository
 
 data class ServiceDraft(
     val editingId: String? = null,
@@ -65,7 +84,8 @@ data class ServiceDraft(
     val odometer: String = "",
     val cost: String = "",
     val notes: String = "",
-    val costLevelSelection: String = "AUTO"
+    val costLevelSelection: String = "AUTO",
+    val imageUris: List<String> = emptyList()
 )
 
 data class PartDraft(
@@ -77,14 +97,23 @@ data class PartDraft(
     val notes: String = "",
     val costLevelSelection: String = "AUTO",
     val replacementIntervalKm: String = "",
-    val warrantyExpiryIso: String = ""
+    val warrantyExpiryIso: String = "",
+    val imageUris: List<String> = emptyList()
 )
+
+private enum class MaintenancePhotoTarget {
+    Service,
+    Part
+}
 
 @Composable
 fun MaintenanceScreen(
-    vm: MaintenanceViewModel
+    vm: MaintenanceViewModel,
+    wagChangeRepository: WagChangeRepository
 ) {
+    val context = LocalContext.current
     val uiState by vm.uiState.collectAsStateWithLifecycle()
+    val activeMotorcycle by wagChangeRepository.activeMotorcycleFlow.collectAsStateWithLifecycle()
     val pendingServiceDelete = uiState.services.firstOrNull { it.id == uiState.pendingDeleteServiceId }
     val pendingPartDelete = uiState.parts.firstOrNull { it.id == uiState.pendingDeletePartId }
 
@@ -92,6 +121,41 @@ fun MaintenanceScreen(
     var partDraft by remember { mutableStateOf(PartDraft()) }
     var showServiceDialog by remember { mutableStateOf(false) }
     var showPartDialog by remember { mutableStateOf(false) }
+    var previewImageUri by remember { mutableStateOf<String?>(null) }
+    var pendingPhotoTarget by remember { mutableStateOf<MaintenancePhotoTarget?>(null) }
+
+    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        val target = pendingPhotoTarget
+        pendingPhotoTarget = null
+        if (uri == null || target == null) return@rememberLauncherForActivityResult
+
+        try {
+            context.contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        } catch (_: SecurityException) {
+        }
+
+        val imageUri = uri.toString()
+        when (target) {
+            MaintenancePhotoTarget.Service -> {
+                if (!serviceDraft.imageUris.contains(imageUri)) {
+                    serviceDraft = serviceDraft.copy(imageUris = serviceDraft.imageUris + imageUri)
+                }
+            }
+
+            MaintenancePhotoTarget.Part -> {
+                if (!partDraft.imageUris.contains(imageUri)) {
+                    partDraft = partDraft.copy(imageUris = partDraft.imageUris + imageUri)
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(activeMotorcycle?.id) {
+        vm.refresh()
+    }
 
     fun resetServiceDraft() {
         serviceDraft = ServiceDraft()
@@ -149,7 +213,8 @@ fun MaintenanceScreen(
                             odometer = record.odometerKm.toString(),
                             cost = record.totalCostPhp.toString(),
                             notes = record.notes,
-                            costLevelSelection = normalizeCostLevelUiSelection(record.costLevelOverride)
+                            costLevelSelection = normalizeCostLevelUiSelection(record.costLevelOverride),
+                            imageUris = record.imageUris
                         )
                         showServiceDialog = true
                     },
@@ -198,7 +263,8 @@ fun MaintenanceScreen(
                             notes = record.notes,
                             costLevelSelection = normalizeCostLevelUiSelection(record.costLevelOverride),
                             replacementIntervalKm = record.replacementIntervalKm?.toString().orEmpty(),
-                            warrantyExpiryIso = record.warrantyExpiryIso.orEmpty()
+                            warrantyExpiryIso = record.warrantyExpiryIso.orEmpty(),
+                            imageUris = record.imageUris
                         )
                         showPartDialog = true
                     },
@@ -222,11 +288,21 @@ fun MaintenanceScreen(
                     costInput = serviceDraft.cost,
                     notes = serviceDraft.notes,
                     costLevelOverride = normalizeCostLevelSelection(serviceDraft.costLevelSelection),
-                    imageUris = emptyList()
+                    imageUris = serviceDraft.imageUris
                 )
                 if (ok) resetServiceDraft()
             },
             onCancelEdit = { resetServiceDraft() },
+            onPickImage = {
+                pendingPhotoTarget = MaintenancePhotoTarget.Service
+                imagePicker.launch(arrayOf("image/*"))
+            },
+            onRemoveImage = { index ->
+                serviceDraft = serviceDraft.copy(
+                    imageUris = serviceDraft.imageUris.filterIndexed { i, _ -> i != index }
+                )
+            },
+            onPreviewImage = { uri -> previewImageUri = uri },
             error = uiState.error,
             message = uiState.message
         )
@@ -247,13 +323,30 @@ fun MaintenanceScreen(
                     costLevelOverride = normalizeCostLevelSelection(partDraft.costLevelSelection),
                     replacementIntervalKmInput = partDraft.replacementIntervalKm,
                     warrantyExpiryIsoInput = partDraft.warrantyExpiryIso,
-                    imageUris = emptyList()
+                    imageUris = partDraft.imageUris
                 )
                 if (ok) resetPartDraft()
             },
             onCancelEdit = { resetPartDraft() },
+            onPickImage = {
+                pendingPhotoTarget = MaintenancePhotoTarget.Part
+                imagePicker.launch(arrayOf("image/*"))
+            },
+            onRemoveImage = { index ->
+                partDraft = partDraft.copy(
+                    imageUris = partDraft.imageUris.filterIndexed { i, _ -> i != index }
+                )
+            },
+            onPreviewImage = { uri -> previewImageUri = uri },
             error = uiState.error,
             message = uiState.message
+        )
+    }
+
+    if (previewImageUri != null) {
+        FullScreenImagePreviewDialog(
+            imageUri = previewImageUri.orEmpty(),
+            onDismiss = { previewImageUri = null }
         )
     }
 
@@ -286,6 +379,9 @@ private fun ServiceFormDialog(
     templates: List<String>,
     onSave: () -> Unit,
     onCancelEdit: () -> Unit,
+    onPickImage: () -> Unit,
+    onRemoveImage: (Int) -> Unit,
+    onPreviewImage: (String) -> Unit,
     error: String?,
     message: String?
 ) {
@@ -296,6 +392,9 @@ private fun ServiceFormDialog(
             templates = templates,
             onSave = onSave,
             onCancelEdit = onCancelEdit,
+            onPickImage = onPickImage,
+            onRemoveImage = onRemoveImage,
+            onPreviewImage = onPreviewImage,
             error = error,
             message = message
         )
@@ -309,6 +408,9 @@ private fun PartFormDialog(
     onDraftChange: (PartDraft) -> Unit,
     onSave: () -> Unit,
     onCancelEdit: () -> Unit,
+    onPickImage: () -> Unit,
+    onRemoveImage: (Int) -> Unit,
+    onPreviewImage: (String) -> Unit,
     error: String?,
     message: String?
 ) {
@@ -318,6 +420,9 @@ private fun PartFormDialog(
             onDraftChange = onDraftChange,
             onSave = onSave,
             onCancelEdit = onCancelEdit,
+            onPickImage = onPickImage,
+            onRemoveImage = onRemoveImage,
+            onPreviewImage = onPreviewImage,
             error = error,
             message = message
         )
@@ -331,6 +436,9 @@ private fun ServiceFormCard(
     templates: List<String>,
     onSave: () -> Unit,
     onCancelEdit: () -> Unit,
+    onPickImage: () -> Unit,
+    onRemoveImage: (Int) -> Unit,
+    onPreviewImage: (String) -> Unit,
     error: String?,
     message: String?
 ) {
@@ -408,6 +516,14 @@ private fun ServiceFormCard(
                     modifier = Modifier.fillMaxWidth()
                 )
 
+                ImageAttachmentsSection(
+                    imageUris = draft.imageUris,
+                    onPickImage = onPickImage,
+                    onRemoveImage = onRemoveImage,
+                    onPreviewImage = onPreviewImage,
+                    addButtonLabel = if (draft.imageUris.isEmpty()) "Add Service Photo" else "Add Photo"
+                )
+
                 if (error != null) {
                     Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                 }
@@ -437,6 +553,9 @@ private fun PartFormCard(
     onDraftChange: (PartDraft) -> Unit,
     onSave: () -> Unit,
     onCancelEdit: () -> Unit,
+    onPickImage: () -> Unit,
+    onRemoveImage: (Int) -> Unit,
+    onPreviewImage: (String) -> Unit,
     error: String?,
     message: String?
 ) {
@@ -511,6 +630,14 @@ private fun PartFormCard(
                     label = "Warranty expiry (optional)",
                     modifier = Modifier.fillMaxWidth(),
                     allowClear = true
+                )
+
+                ImageAttachmentsSection(
+                    imageUris = draft.imageUris,
+                    onPickImage = onPickImage,
+                    onRemoveImage = onRemoveImage,
+                    onPreviewImage = onPreviewImage,
+                    addButtonLabel = if (draft.imageUris.isEmpty()) "Add Part Photo" else "Add Photo"
                 )
 
                 if (error != null) {
@@ -613,6 +740,9 @@ private fun ServiceRecordCard(
             if (record.notes.isNotBlank()) {
                 Text(record.notes, style = MaterialTheme.typography.bodySmall)
             }
+            if (record.imageUris.isNotEmpty()) {
+                Text("Photos: ${record.imageUris.size}", style = MaterialTheme.typography.bodySmall)
+            }
         }
     }
 }
@@ -669,6 +799,78 @@ private fun PartRecordCard(
             }
             if (record.notes.isNotBlank()) {
                 Text(record.notes, style = MaterialTheme.typography.bodySmall)
+            }
+            if (record.imageUris.isNotEmpty()) {
+                Text("Photos: ${record.imageUris.size}", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ImageAttachmentsSection(
+    imageUris: List<String>,
+    onPickImage: () -> Unit,
+    onRemoveImage: (Int) -> Unit,
+    onPreviewImage: (String) -> Unit,
+    addButtonLabel: String
+) {
+    if (imageUris.isNotEmpty()) {
+        Text("Photos (${imageUris.size})", style = MaterialTheme.typography.bodyMedium)
+        imageUris.forEachIndexed { index, uri ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Photo ${index + 1}",
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                CompactIconAction(
+                    icon = Icons.Filled.Visibility,
+                    contentDescription = "Preview photo ${index + 1}",
+                    onClick = { onPreviewImage(uri) }
+                )
+                CompactIconAction(
+                    icon = Icons.Filled.HideImage,
+                    contentDescription = "Remove photo ${index + 1}",
+                    onClick = { onRemoveImage(index) }
+                )
+            }
+        }
+    }
+
+    Button(onClick = onPickImage) {
+        Icon(Icons.Filled.AddAPhoto, contentDescription = null)
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(addButtonLabel)
+    }
+}
+
+@Composable
+private fun FullScreenImagePreviewDialog(
+    imageUri: String,
+    onDismiss: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.scrim) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                AsyncImage(
+                    model = imageUri,
+                    contentDescription = "Maintenance image preview",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.align(Alignment.TopEnd)
+                ) {
+                    Icon(Icons.Filled.Close, contentDescription = "Close preview")
+                }
             }
         }
     }
@@ -823,6 +1025,9 @@ private fun ServiceFormCardPreview() {
             templates = listOf("Engine Oil Change", "CVT Cleaning"),
             onSave = {},
             onCancelEdit = {},
+            onPickImage = {},
+            onRemoveImage = {},
+            onPreviewImage = {},
             error = null,
             message = null
         )
@@ -846,6 +1051,9 @@ private fun PartFormCardPreview() {
             onDraftChange = {},
             onSave = {},
             onCancelEdit = {},
+            onPickImage = {},
+            onRemoveImage = {},
+            onPreviewImage = {},
             error = null,
             message = null
         )

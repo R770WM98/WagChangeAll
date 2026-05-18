@@ -15,5 +15,5 @@ fun MaintenanceLogScreen(
         )
     )
 
-    MaintenanceScreen(vm = vm)
+    MaintenanceScreen(vm = vm, wagChangeRepository = wagChangeRepository)
 }
