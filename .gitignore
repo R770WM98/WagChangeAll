@@ -15,3 +15,6 @@
 local.properties
 .jdk/
 .jdk
+.idea/copilotDiffState.xml
+/app/release/
+build-test.log
