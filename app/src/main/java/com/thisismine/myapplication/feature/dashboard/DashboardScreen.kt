@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -46,12 +45,7 @@ import com.thisismine.myapplication.core.ui.CompactIconAction
 import com.thisismine.myapplication.core.ui.LocalCardDensity
 import com.thisismine.myapplication.core.ui.StatusChip
 import com.thisismine.myapplication.core.ui.StatusTone
-import com.thisismine.myapplication.data.local.WagChangeDatabase
-import com.thisismine.myapplication.data.repository.RoomWagChangeRepository
 import com.thisismine.myapplication.data.repository.WagChangeRepository
-import com.thisismine.myapplication.feature.dashboard.printServiceHistory
-import com.thisismine.myapplication.feature.dashboard.printPartHistory
-import com.thisismine.myapplication.feature.dashboard.printCombinedHistory
 import com.thisismine.myapplication.feature.reminders.notifications.AlarmReminderScheduler
 import com.thisismine.myapplication.ui.theme.MyApplicationTheme
 import java.time.format.DateTimeFormatter
@@ -210,7 +204,7 @@ private fun ActiveMotorcycleCard(
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(top = 6.dp, bottom = 8.dp)
         )
-        Button(onClick = onSwitch) { Text("Switch Motorcycle") }
+        Button(onClick = onSwitch) { Text("Open bikes") }
     }
 }
 
@@ -256,7 +250,7 @@ private fun QuickActionsCard(
                 modifier = Modifier.weight(1f)
             ) {
                 Icon(Icons.Filled.TwoWheeler, contentDescription = null)
-                Text(" Switch bike")
+                Text(" Open bikes")
             }
             FilledTonalButton(
                 onClick = { showPrintDialog.value = true },

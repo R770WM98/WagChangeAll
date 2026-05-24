@@ -81,21 +81,24 @@ fun WagChangeAllApp(
     val currentEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentEntry?.destination?.route
 
+    // Remove Motorcycles from the primary bottom bar; it will be reachable from the Dashboard UI.
     val primaryDestinations = listOf(
-        AppDestination.Motorcycles,
         AppDestination.Dashboard,
         AppDestination.MaintenanceLog,
         AppDestination.Reminders
     )
-    val secondaryDestinations = AppDestination.entries.filterNot { it in primaryDestinations }
+    // Exclude AI destinations from the "More" sheet because they're surfaced by the AI button
+    val secondaryDestinations = AppDestination.entries.filterNot { it in primaryDestinations || it == AppDestination.Predictive || it == AppDestination.MechanicSummary }
     val isOnSecondaryDestination = secondaryDestinations.any { it.route == currentRoute }
 
     var showSettingsDialog by rememberSaveable { mutableStateOf(false) }
     var showMoreSheet by rememberSaveable { mutableStateOf(false) }
+    var showAiSheet by rememberSaveable { mutableStateOf(false) }
 
     fun navigateTo(destination: AppDestination) {
         navController.navigate(destination.route) {
-            popUpTo(AppDestination.Motorcycles.route) { saveState = true }
+            // Use Dashboard as the popUpTo root so the bottom navigation behaves consistently
+            popUpTo(AppDestination.Dashboard.route) { saveState = true }
             launchSingleTop = true
             restoreState = true
         }
@@ -166,6 +169,26 @@ fun WagChangeAllApp(
                             colors = NavigationBarItemDefaults.colors()
                         )
                     }
+                    // AI button replaces the Bikes primary button. It opens a sheet to choose AI features.
+                    val aiDestinations = listOf(AppDestination.Predictive, AppDestination.MechanicSummary)
+                    val isOnAiDestination = aiDestinations.any { it.route == currentRoute }
+                    NavigationBarItem(
+                        selected = isOnAiDestination || showAiSheet,
+                        onClick = { showAiSheet = true },
+                        icon = {
+                            Icon(AppDestination.Predictive.icon, contentDescription = "AI")
+                        },
+                        label = {
+                            Text(
+                                text = "AI",
+                                maxLines = 1,
+                                softWrap = false,
+                                overflow = TextOverflow.Ellipsis,
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        },
+                        colors = NavigationBarItemDefaults.colors()
+                    )
                     NavigationBarItem(
                         selected = isOnSecondaryDestination || showMoreSheet,
                         onClick = { showMoreSheet = true },
@@ -194,6 +217,59 @@ fun WagChangeAllApp(
                 wagChangeRepository = wagChangeRepository,
                 modifier = Modifier.padding(innerPadding)
             )
+        }
+
+        if (showAiSheet) {
+            ModalBottomSheet(onDismissRequest = { showAiSheet = false }) {
+                val aiDestinations = listOf(AppDestination.Predictive, AppDestination.MechanicSummary)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "AI actions",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                    Text(
+                        text = "Current: ${AppDestination.entries.firstOrNull { it.route == currentRoute }?.label ?: "None"}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+                    aiDestinations.forEach { destination ->
+                        NavigationDrawerItem(
+                            label = {
+                                Text(
+                                    text = destination.label,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            },
+                            selected = currentRoute == destination.route,
+                            onClick = {
+                                showAiSheet = false
+                                navigateTo(destination)
+                            },
+                            icon = {
+                                Icon(destination.icon, contentDescription = null)
+                            },
+                            badge = {
+                                if (currentRoute == destination.route) {
+                                    Icon(Icons.Filled.Check, contentDescription = null)
+                                }
+                            },
+                            colors = NavigationDrawerItemDefaults.colors(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 4.dp)
+                        )
+                    }
+                }
+            }
         }
 
         if (showMoreSheet) {
