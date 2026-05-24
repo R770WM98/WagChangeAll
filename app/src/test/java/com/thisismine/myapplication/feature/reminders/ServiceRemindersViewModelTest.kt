@@ -107,7 +107,9 @@ private class FakeReminderRepository : ReminderRepository {
 
     override fun getCurrentOdometerKm(): Int = 11800
 
-    override fun getReminders(): List<ServiceReminder> = reminderStore.toList()
+     override fun getReminders(): List<ServiceReminder> = reminderStore.filter { !it.isArchived }
+
+    override fun getArchivedReminders(): List<ServiceReminder> = reminderStore.filter { it.isArchived }
 
     override fun addReminder(
         title: String,

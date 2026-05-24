@@ -61,7 +61,7 @@ fun printCombinedHistory(
 
     val printManager = context.getSystemService(Context.PRINT_SERVICE) as? PrintManager ?: return
     val webView = WebView(context)
-    val html = buildCombinedHistoryHtml(motorcycleName, maintenanceEntries, partReplacements)
+    val html = buildFullMaintenanceHistoryHtml(motorcycleName, maintenanceEntries, partReplacements)
     webView.loadDataWithBaseURL(null, html, "text/HTML", "UTF-8", null)
     val jobName = "${motorcycleName.takeIf { it.isNotBlank() } ?: "Motorcycle"} Maintenance & Parts History"
     printManager.print(
@@ -74,7 +74,7 @@ fun printCombinedHistory(
     )
 }
 
-private fun buildServiceHistoryHtml(
+internal fun buildServiceHistoryHtml(
     motorcycleName: String,
     entries: List<MaintenanceEntry>
 ): String {
@@ -127,7 +127,7 @@ private fun buildServiceHistoryHtml(
     """.trimIndent()
 }
 
-private fun buildPartHistoryHtml(
+internal fun buildPartHistoryHtml(
     motorcycleName: String,
     entries: List<PartReplacement>
 ): String {
@@ -180,7 +180,7 @@ private fun buildPartHistoryHtml(
     """.trimIndent()
 }
 
-private fun buildCombinedHistoryHtml(
+internal fun buildFullMaintenanceHistoryHtml(
     motorcycleName: String,
     maintenanceEntries: List<MaintenanceEntry>,
     partReplacements: List<PartReplacement>

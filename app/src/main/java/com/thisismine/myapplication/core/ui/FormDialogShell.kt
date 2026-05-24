@@ -11,10 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,8 +28,9 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FormDialogShell(
     title: String,
@@ -52,19 +51,24 @@ fun FormDialogShell(
         showContent = true
     }
 
-    BasicAlertDialog(
+    Dialog(
         onDismissRequest = onDismiss,
-        modifier = modifier
-            .fillMaxWidth(0.9f)
-            .safeDrawingPadding()
-            .imePadding()
+        properties = DialogProperties(
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false
+        )
     ) {
         AnimatedVisibility(
             visible = showContent,
             enter = motion.dialogEnter(),
             exit = motion.dialogExit()
         ) {
-            Card(modifier = Modifier.fillMaxWidth()) {
+            Card(
+                modifier = modifier
+                    .fillMaxWidth(0.9f)
+                    .safeDrawingPadding()
+                    .imePadding()
+            ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()

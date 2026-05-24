@@ -45,7 +45,7 @@ class DashboardPrintHelperTest {
     fun fullMaintenanceHtml_includesCategoryAndTotals() {
         val html = buildFullMaintenanceHistoryHtml(
             motorcycleName = "Tourer",
-            serviceEntries = listOf(
+            maintenanceEntries = listOf(
                 MaintenanceEntry(
                     id = "m1",
                     motorcycleId = "bike-1",
@@ -56,7 +56,7 @@ class DashboardPrintHelperTest {
                     notes = "Regular"
                 )
             ),
-            partEntries = listOf(
+            partReplacements = listOf(
                 PartReplacement(
                     id = "p1",
                     motorcycleId = "bike-1",
