@@ -3,6 +3,9 @@ package com.thisismine.myapplication.feature.mechanic
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Refresh
@@ -11,13 +14,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun MechanicSummaryScreen(
-    viewModel: MechanicSummaryViewModel = viewModel(),
-    onNavigateBack: () -> Unit = {}
+    viewModel: MechanicSummaryViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -121,7 +124,6 @@ fun MechanicSummaryScreen(
 
             // Confidence badge
             SummaryBadge(
-                label = "Confidence",
                 value = summary.confidence,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
@@ -180,25 +182,68 @@ private fun SummaryCard(
                 style = MaterialTheme.typography.labelLarge
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Text(
+            ScrollableTextWindow(
                 text = content,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                textColor = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
 }
 
 @Composable
+private fun ScrollableTextWindow(
+    text: String,
+    textColor: androidx.compose.ui.graphics.Color,
+    modifier: Modifier = Modifier,
+    maxHeight: Dp = 160.dp
+) {
+    val scrollState = rememberScrollState()
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(max = maxHeight)
+            .border(1.dp, MaterialTheme.colorScheme.outline, shape = RoundedCornerShape(8.dp)),
+        shape = RoundedCornerShape(8.dp),
+        tonalElevation = 2.dp,
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .padding(12.dp)
+            ) {
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = textColor
+                )
+            }
+
+            if (scrollState.maxValue > 0) {
+                Text(
+                    text = "Scroll",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun SummaryBadge(
-    label: String,
     value: String,
     modifier: Modifier = Modifier
 ) {
     AssistChip(
         onClick = {},
         label = {
-            Text("$label: $value", style = MaterialTheme.typography.labelSmall)
+            Text("Confidence: $value", style = MaterialTheme.typography.labelSmall)
         },
         modifier = modifier
     )
