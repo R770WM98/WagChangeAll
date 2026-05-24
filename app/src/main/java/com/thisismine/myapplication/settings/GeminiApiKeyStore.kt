@@ -21,9 +21,7 @@ object GeminiApiKeyStore {
         }
     }
 
-    fun clear(prefs: SharedPreferences) {
-        prefs.edit { remove(KEY_GEMINI_API_KEY) }
-    }
+    // removed unused helper to avoid unused-member warnings; functionality was trivial
 
     fun migrateFromLegacyPrefs(legacyPrefs: SharedPreferences, targetPrefs: SharedPreferences) {
         if (targetPrefs.getString(KEY_GEMINI_API_KEY, null) != null || legacyPrefs.all.isEmpty()) return

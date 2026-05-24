@@ -5,15 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.background
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.pointerInteropFilter
-import android.view.MotionEvent
-import androidx.compose.foundation.gestures.detectTapGestures
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import com.thisismine.myapplication.core.ui.LocalCardDensity
@@ -191,10 +183,50 @@ private fun SummaryCard(
             .padding(bottom = 12.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.labelLarge
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.labelLarge
+                )
+                // full-screen control for this summary card
+                var showFullScreen by remember { mutableStateOf(false) }
+                IconButton(onClick = { showFullScreen = true }) {
+                    Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = "Open full screen")
+                }
+                if (showFullScreen) {
+                    Dialog(onDismissRequest = { showFullScreen = false }) {
+                        Surface(modifier = Modifier.fillMaxSize(), shape = RoundedCornerShape(0.dp)) {
+                            Column(modifier = Modifier.fillMaxSize()) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(title, style = MaterialTheme.typography.titleMedium)
+                                    IconButton(onClick = { showFullScreen = false }) {
+                                        Icon(Icons.Filled.Close, contentDescription = "Close")
+                                    }
+                                }
+                                HorizontalDivider()
+                                Box(modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(12.dp)) {
+                                    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                                        Text(text = content, style = MaterialTheme.typography.bodyMedium)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+            }
             Spacer(modifier = Modifier.height(4.dp))
             ScrollableTextWindow(
                 text = content,
@@ -214,34 +246,18 @@ private fun ScrollableTextWindow(
     val scrollState = rememberScrollState()
     val density = LocalCardDensity.current
     val maxHeight = if (density.cardPadding <= 12.dp) 120.dp else 160.dp
-    var showFullScreen by remember { mutableStateOf(false) }
-    var hoverIconVisible by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
 
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(max = maxHeight)
-            .border(1.dp, MaterialTheme.colorScheme.outline, shape = RoundedCornerShape(8.dp))
-            .pointerInteropFilter { ev ->
-                when (ev.action) {
-                    MotionEvent.ACTION_HOVER_ENTER -> hoverIconVisible = true
-                    MotionEvent.ACTION_HOVER_EXIT -> hoverIconVisible = false
-                }
-                false
-            }
-            .pointerInput(Unit) {
-                detectTapGestures(onLongPress = {
-                    hoverIconVisible = true
-                    scope.launch { delay(3000); hoverIconVisible = false }
-                })
-            },
+            .border(1.dp, MaterialTheme.colorScheme.outline, shape = RoundedCornerShape(8.dp)),
         shape = RoundedCornerShape(8.dp),
         tonalElevation = 2.dp,
         color = MaterialTheme.colorScheme.surface
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            val iconAreaPadding =  if (hoverIconVisible) 36.dp else 12.dp
+            val iconAreaPadding = if (showFullScreenButton) 36.dp else 12.dp
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -256,81 +272,25 @@ private fun ScrollableTextWindow(
             }
 
             val fadeHeight = 20.dp
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(fadeHeight)
-                    .align(Alignment.TopCenter)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f), Color.Transparent)
-                        )
+            val topFadeModifier = Modifier
+                .fillMaxWidth()
+                .height(fadeHeight)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f), Color.Transparent)
                     )
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(fadeHeight)
-                    .align(Alignment.BottomCenter)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
-                        )
+                )
+            Box(modifier = topFadeModifier.align(Alignment.TopCenter))
+
+            val bottomFadeModifier = Modifier
+                .fillMaxWidth()
+                .height(fadeHeight)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color.Transparent, MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
                     )
-            )
-
-            if (hoverIconVisible) {
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-                    tonalElevation = 0.dp,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .align(Alignment.TopEnd)
-                        .padding(6.dp)
-                ) {
-                    IconButton(
-                        onClick = { showFullScreen = true },
-                        modifier = Modifier
-                            .size(36.dp)
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.OpenInNew,
-                            contentDescription = "Open full screen",
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    if (showFullScreen) {
-        Dialog(onDismissRequest = { showFullScreen = false }) {
-            Surface(modifier = Modifier.fillMaxSize(), shape = RoundedCornerShape(0.dp)) {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Full output", style = MaterialTheme.typography.titleMedium)
-                        IconButton(onClick = { showFullScreen = false }) {
-                            Icon(Icons.Filled.Close, contentDescription = "Close")
-                        }
-                    }
-                    HorizontalDivider()
-                    Box(modifier = Modifier
-                        .fillMaxSize()
-                        .padding(12.dp)) {
-                        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                            Text(text = text, style = MaterialTheme.typography.bodyMedium)
-                        }
-                    }
-                }
-            }
+                )
+            Box(modifier = bottomFadeModifier.align(Alignment.BottomCenter))
         }
     }
 }

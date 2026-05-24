@@ -4,16 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.background
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.pointerInteropFilter
-import android.view.MotionEvent
-import androidx.compose.foundation.gestures.detectTapGestures
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -288,20 +280,109 @@ private fun RuleSuggestionCard(
                 )
             }
 
-            Text(
-                text = "Interval: ${suggestion.suggestedInterval}",
-                style = MaterialTheme.typography.bodySmall
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            ScrollableTextWindow(
-                text = "Rationale: ${suggestion.rationale}",
-                textColor = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            ScrollableTextWindow(
-                text = "Risk: ${suggestion.riskIfSkipped}",
-                textColor = MaterialTheme.colorScheme.error
-            )
+                Text(
+                    text = "Interval: ${suggestion.suggestedInterval}",
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Rationale with header icon to open full screen
+                val rationaleText = "Rationale: ${suggestion.rationale}"
+                var showRationaleFullScreen by remember { mutableStateOf(false) }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    IconButton(onClick = { showRationaleFullScreen = true }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.OpenInNew,
+                            contentDescription = "Open rationale full screen"
+                        )
+                    }
+                }
+                ScrollableTextWindow(
+                    text = rationaleText,
+                    textColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                if (showRationaleFullScreen) {
+                    Dialog(onDismissRequest = { showRationaleFullScreen = false }) {
+                        Surface(modifier = Modifier.fillMaxSize(), shape = RoundedCornerShape(0.dp)) {
+                            Column(modifier = Modifier.fillMaxSize()) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("Rationale", style = MaterialTheme.typography.titleMedium)
+                                    IconButton(onClick = { showRationaleFullScreen = false }) {
+                                        Icon(Icons.Filled.Close, contentDescription = "Close")
+                                    }
+                                }
+                                HorizontalDivider()
+                                Box(modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(12.dp)) {
+                                    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                                        Text(text = rationaleText, style = MaterialTheme.typography.bodyMedium)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Risk with header icon to open full screen
+                val riskText = "Risk: ${suggestion.riskIfSkipped}"
+                var showRiskFullScreen by remember { mutableStateOf(false) }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    IconButton(onClick = { showRiskFullScreen = true }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.OpenInNew,
+                            contentDescription = "Open risk full screen"
+                        )
+                    }
+                }
+                ScrollableTextWindow(
+                    text = riskText,
+                    textColor = MaterialTheme.colorScheme.error
+                )
+                if (showRiskFullScreen) {
+                    Dialog(onDismissRequest = { showRiskFullScreen = false }) {
+                        Surface(modifier = Modifier.fillMaxSize(), shape = RoundedCornerShape(0.dp)) {
+                            Column(modifier = Modifier.fillMaxSize()) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("Risk", style = MaterialTheme.typography.titleMedium)
+                                    IconButton(onClick = { showRiskFullScreen = false }) {
+                                        Icon(Icons.Filled.Close, contentDescription = "Close")
+                                    }
+                                }
+                                HorizontalDivider()
+                                Box(modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(12.dp)) {
+                                    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                                        Text(text = riskText, style = MaterialTheme.typography.bodyMedium)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -348,29 +429,12 @@ private fun ScrollableTextWindow(
     val density = LocalCardDensity.current
     // Determine max height from density mode: smaller for compact
     val maxHeight = if (density.cardPadding <= 12.dp) 120.dp else 160.dp
-    var showFullScreen by remember { mutableStateOf(false) }
-    var hoverIconVisible by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
 
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(max = maxHeight)
-            .border(1.dp, MaterialTheme.colorScheme.outline, shape = RoundedCornerShape(8.dp))
-            // show hover icon on pointer enter/exit (desktop) and on long-press (touch)
-            .pointerInteropFilter { ev ->
-                when (ev.action) {
-                    MotionEvent.ACTION_HOVER_ENTER -> hoverIconVisible = true
-                    MotionEvent.ACTION_HOVER_EXIT -> hoverIconVisible = false
-                }
-                false
-            }
-            .pointerInput(Unit) {
-                detectTapGestures(onLongPress = {
-                    hoverIconVisible = true
-                    scope.launch { delay(3000); hoverIconVisible = false }
-                })
-            },
+            .border(1.dp, MaterialTheme.colorScheme.outline, shape = RoundedCornerShape(8.dp)),
         shape = RoundedCornerShape(8.dp),
         tonalElevation = 2.dp,
         color = MaterialTheme.colorScheme.surface
@@ -392,82 +456,25 @@ private fun ScrollableTextWindow(
 
             // top/bottom subtle gradient indicators
             val fadeHeight = 20.dp
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(fadeHeight)
-                    .align(Alignment.TopCenter)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f), Color.Transparent)
-                        )
+            val topFadeModifier = Modifier
+                .fillMaxWidth()
+                .height(fadeHeight)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f), Color.Transparent)
                     )
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(fadeHeight)
-                    .align(Alignment.BottomCenter)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
-                        )
+                )
+            Box(modifier = topFadeModifier.align(Alignment.TopCenter))
+
+            val bottomFadeModifier = Modifier
+                .fillMaxWidth()
+                .height(fadeHeight)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color.Transparent, MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
                     )
-            )
-
-            // show icon only when hovered (desktop) or revealed by long-press (touch)
-            if (hoverIconVisible) {
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-                    tonalElevation = 0.dp,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .align(Alignment.TopEnd)
-                        .padding(6.dp)
-                ) {
-                    IconButton(
-                        onClick = { showFullScreen = true },
-                        modifier = Modifier
-                            .size(36.dp)
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.OpenInNew,
-                            contentDescription = "Open full screen",
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    if (showFullScreen) {
-        Dialog(onDismissRequest = { showFullScreen = false }) {
-            Surface(modifier = Modifier.fillMaxSize(), shape = RoundedCornerShape(0.dp)) {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Full output", style = MaterialTheme.typography.titleMedium)
-                        IconButton(onClick = { showFullScreen = false }) {
-                            Icon(Icons.Filled.Close, contentDescription = "Close")
-                        }
-                    }
-                    HorizontalDivider()
-                    Box(modifier = Modifier
-                        .fillMaxSize()
-                        .padding(12.dp)) {
-                        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                            Text(text = text, style = MaterialTheme.typography.bodyMedium)
-                        }
-                    }
-                }
-            }
+                )
+            Box(modifier = bottomFadeModifier.align(Alignment.BottomCenter))
         }
     }
 }

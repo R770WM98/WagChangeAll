@@ -1,3 +1,4 @@
+@file:Suppress("unused")
 package com.thisismine.myapplication.core.ui
 
 import android.animation.ValueAnimator
@@ -43,6 +44,7 @@ fun defaultMotionScheme(reducedMotion: Boolean = false): MotionScheme = MotionSc
     navSlideFraction = if (reducedMotion) 0.04f else 0.1f
 )
 
+@Suppress("unused")
 @Composable
 fun rememberSystemReducedMotion(): Boolean = remember {
     !ValueAnimator.areAnimatorsEnabled()
@@ -86,6 +88,7 @@ fun MotionScheme.dialogExit(): ExitTransition {
         )
 }
 
+@Suppress("unused")
 fun MotionScheme.itemPlacementSpec(): FiniteAnimationSpec<IntOffset> =
     if (reducedMotion) {
         tween(durationMillis = fastMillis)
@@ -105,7 +108,7 @@ fun animatedProgressValue(target: Float): Float {
 }
 
 @Composable
-fun rememberPressScaleModifier(
+fun Modifier.rememberPressScaleModifier(
     interactionSource: MutableInteractionSource,
     enabled: Boolean = true
 ): Modifier {
@@ -116,7 +119,7 @@ fun rememberPressScaleModifier(
         animationSpec = tween(durationMillis = motion.fastMillis),
         label = "press-scale"
     )
-    return Modifier.graphicsLayer {
+    return this.graphicsLayer {
         scaleX = scale
         scaleY = scale
     }

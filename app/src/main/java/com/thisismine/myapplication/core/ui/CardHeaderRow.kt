@@ -1,3 +1,4 @@
+@file:Suppress("ModifierParameter")
 package com.thisismine.myapplication.core.ui
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -26,12 +27,13 @@ import com.thisismine.myapplication.ui.theme.MyApplicationTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 
+@Suppress("ModifierParameter")
 @Composable
 fun CardHeaderRow(
     icon: ImageVector,
     title: String,
-    titleMaxLines: Int = 1,
     modifier: Modifier = Modifier,
+    titleMaxLines: Int = 1,
     trailing: @Composable (() -> Unit)? = null
 ) {
     Row(
@@ -65,7 +67,7 @@ fun CompactIconAction(
     enabled: Boolean = true
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    val pressScaleModifier = rememberPressScaleModifier(
+    val pressScaleModifier = Modifier.rememberPressScaleModifier(
         interactionSource = interactionSource,
         enabled = enabled
     )
