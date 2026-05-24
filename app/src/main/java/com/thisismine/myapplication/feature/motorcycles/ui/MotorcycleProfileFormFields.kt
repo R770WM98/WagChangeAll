@@ -34,9 +34,9 @@ fun MotorcycleProfileFormFields(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        OutlinedTextField(name, onNameChange, label = { Text("Name") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(name, onNameChange, label = { Text("Motorcycle model") }, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(plateNumber, onPlateNumberChange, label = { Text("Plate Number") }, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(vin, onVinChange, label = { Text("VIN") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(vin, onVinChange, label = { Text("Motorcycle Chassis Number") }, modifier = Modifier.fillMaxWidth())
         DatePickerField(
             value = purchaseDateIso,
             onValueChange = onPurchaseDateChange,
