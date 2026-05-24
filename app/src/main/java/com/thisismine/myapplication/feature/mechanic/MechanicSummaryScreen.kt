@@ -5,6 +5,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import com.thisismine.myapplication.core.ui.LocalCardDensity
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
@@ -14,8 +18,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
@@ -193,11 +199,15 @@ private fun SummaryCard(
 @Composable
 private fun ScrollableTextWindow(
     text: String,
-    textColor: androidx.compose.ui.graphics.Color,
+    textColor: Color,
     modifier: Modifier = Modifier,
-    maxHeight: Dp = 160.dp
+    showFullScreenButton: Boolean = true
 ) {
     val scrollState = rememberScrollState()
+    val density = LocalCardDensity.current
+    val maxHeight = if (density.cardPadding <= 12.dp) 120.dp else 160.dp
+    var showFullScreen by remember { mutableStateOf(false) }
+
     Surface(
         modifier = modifier
             .fillMaxWidth()
@@ -221,15 +231,66 @@ private fun ScrollableTextWindow(
                 )
             }
 
-            if (scrollState.maxValue > 0) {
-                Text(
-                    text = "Scroll",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(8.dp)
-                )
+            val fadeHeight = 20.dp
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(fadeHeight)
+                    .align(Alignment.TopCenter)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f), Color.Transparent)
+                        )
+                    )
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(fadeHeight)
+                    .align(Alignment.BottomCenter)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color.Transparent, MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
+                        )
+                    )
+            )
+
+            if (showFullScreenButton) {
+                IconButton(
+                    onClick = { showFullScreen = true },
+                    modifier = Modifier.align(Alignment.TopEnd)
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = "Open full screen")
+                }
+            }
+        }
+    }
+
+    if (showFullScreen) {
+        Dialog(onDismissRequest = { showFullScreen = false }) {
+            Surface(modifier = Modifier.fillMaxSize(), shape = RoundedCornerShape(0.dp)) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Full output", style = MaterialTheme.typography.titleMedium)
+                        IconButton(onClick = { showFullScreen = false }) {
+                            Icon(Icons.Filled.Close, contentDescription = "Close")
+                        }
+                    }
+                    HorizontalDivider()
+                    Box(modifier = Modifier
+                        .fillMaxSize()
+                        .padding(12.dp)) {
+                        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                            Text(text = text, style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                }
             }
         }
     }
