@@ -4,8 +4,16 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.background
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.pointerInteropFilter
+import android.view.MotionEvent
+import androidx.compose.foundation.gestures.detectTapGestures
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -341,22 +349,39 @@ private fun ScrollableTextWindow(
     // Determine max height from density mode: smaller for compact
     val maxHeight = if (density.cardPadding <= 12.dp) 120.dp else 160.dp
     var showFullScreen by remember { mutableStateOf(false) }
+    var hoverIconVisible by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(max = maxHeight)
-            .border(1.dp, MaterialTheme.colorScheme.outline, shape = RoundedCornerShape(8.dp)),
+            .border(1.dp, MaterialTheme.colorScheme.outline, shape = RoundedCornerShape(8.dp))
+            // show hover icon on pointer enter/exit (desktop) and on long-press (touch)
+            .pointerInteropFilter { ev ->
+                when (ev.action) {
+                    MotionEvent.ACTION_HOVER_ENTER -> hoverIconVisible = true
+                    MotionEvent.ACTION_HOVER_EXIT -> hoverIconVisible = false
+                }
+                false
+            }
+            .pointerInput(Unit) {
+                detectTapGestures(onLongPress = {
+                    hoverIconVisible = true
+                    scope.launch { delay(3000); hoverIconVisible = false }
+                })
+            },
         shape = RoundedCornerShape(8.dp),
         tonalElevation = 2.dp,
         color = MaterialTheme.colorScheme.surface
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
+            val iconAreaPadding = if (showFullScreenButton) 36.dp else 12.dp
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(scrollState)
-                    .padding(12.dp)
+                    .padding(start = 12.dp, end = 12.dp, top = iconAreaPadding, bottom = 12.dp)
             ) {
                 Text(
                     text = text,
@@ -390,12 +415,28 @@ private fun ScrollableTextWindow(
                     )
             )
 
-            if (showFullScreenButton) {
-                IconButton(
-                    onClick = { showFullScreen = true },
-                    modifier = Modifier.align(Alignment.TopEnd)
+            // show icon only when hovered (desktop) or revealed by long-press (touch)
+            if (hoverIconVisible) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                    tonalElevation = 0.dp,
+                    modifier = Modifier
+                        .size(36.dp)
+                        .align(Alignment.TopEnd)
+                        .padding(6.dp)
                 ) {
-                        Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = "Open full screen")
+                    IconButton(
+                        onClick = { showFullScreen = true },
+                        modifier = Modifier
+                            .size(36.dp)
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.OpenInNew,
+                            contentDescription = "Open full screen",
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
             }
         }
